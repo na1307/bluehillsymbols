@@ -15,17 +15,31 @@ on:
         type: string
         default: ${{ github.ref_name }}
 
+permissions:
+  contents: write
+
 jobs:
   publish:
     name: Publish
     runs-on: windows-latest
     steps:
-      #- uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+        with:
+          repository: ${{ job.workflow_repository }}
+          ref: main
       - run: echo ${{ github.ref_name }}
       - name: Download artifact
         uses: actions/download-artifact@v8
         with:
           name: ${{ inputs.artifact_name }}
           path: _artifact
-      - run: ls -R _artifact
+      - run: |
+          ls -R _artifact
+          Remove-Item -Recurse -Force _artifact
+          echo ngrn > test.txt
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "chore: Test [skip ci]"
+          git push
       #- run: "& \"C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x64\\symstore.exe\""

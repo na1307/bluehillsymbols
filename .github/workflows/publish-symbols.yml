@@ -1,0 +1,24 @@
+name: Publish Symbols
+
+on:
+  workflow_call:
+    inputs:
+      artifact_id:
+        required: true
+        type: number
+      product_name:
+        required: true
+        type: string
+      version:
+        required: true
+        type: string
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: |
+          echo ${{ github.event.repository.name }}
+          echo ${{ github.ref_name }}
+      - run: C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\symstore.exe

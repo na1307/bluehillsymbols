@@ -14,9 +14,9 @@ on:
         required: false
         type: string
         default: ${{ github.ref_name }}
-
-permissions:
-  contents: write
+    secrets:
+      BS_PAT:
+        required: true
 
 jobs:
   publish:
@@ -27,6 +27,7 @@ jobs:
         with:
           repository: ${{ job.workflow_repository }}
           ref: main
+          token: ${{ secrets.BS_PAT }}
       - run: echo ${{ github.ref_name }}
       - name: Download artifact
         uses: actions/download-artifact@v8

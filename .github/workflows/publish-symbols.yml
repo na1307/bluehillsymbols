@@ -3,9 +3,15 @@ name: Publish Symbols
 on:
   workflow_dispatch:
     inputs:
-      artifact_id:
+      repository:
+        required: true
+        type: string
+      run_id:
         required: true
         type: number
+      artifact_name:
+        required: true
+        type: string
       product_name:
         required: true
         type: string
@@ -37,8 +43,11 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v8
         with:
-          artifact-ids: ${{ inputs.artifact_id }}
+          repository: ${{ inputs.repository }}
+          run-id: ${{ inputs.run_id }}
+          name: ${{ inputs.artifact_name }}
           path: _artifact
+          github-token: ${{ secrets.BS_PAT }}
       - run: "& \"C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x64\\symstore.exe\" add /r /o /compress /f _artifact\\*.pdb /s _working /t ${{ inputs.product_name }} /v ${{ inputs.version }}"
       - run: mv _working\000Admin .
       - name: Upload

@@ -3,9 +3,9 @@ name: Publish Symbols
 on:
   workflow_call:
     inputs:
-      artifact_id:
+      artifact_name:
         required: true
-        type: number
+        type: string
       product_name:
         required: false
         type: string
@@ -20,6 +20,12 @@ jobs:
     name: Publish
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v7
+      #- uses: actions/checkout@v7
       - run: echo ${{ github.ref_name }}
-      - run: "& \"C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x64\\symstore.exe\""
+      - name: Download artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: _artifact
+      - run: ls -R _artifact
+      #- run: "& \"C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x64\\symstore.exe\""

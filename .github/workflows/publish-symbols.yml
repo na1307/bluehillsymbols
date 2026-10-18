@@ -1,46 +1,51 @@
 name: Publish Symbols
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
-      artifact_name:
+      artifact_id:
         required: true
-        type: string
+        type: number
       product_name:
-        required: false
-        type: string
-        default: ${{ github.event.repository.name }}
-      version:
-        required: false
-        type: string
-        default: ${{ github.ref_name }}
-    secrets:
-      BS_PAT:
         required: true
+        type: string
+      version:
+        required: true
+        type: string
 
 jobs:
   publish:
-    name: Publish
+    name: Publish Symbols
     runs-on: windows-latest
+    permissions:
+      contents: write
+      id-token: write
     steps:
       - uses: actions/checkout@v7
         with:
-          repository: ${{ job.workflow_repository }}
           ref: main
-          token: ${{ secrets.BS_PAT }}
-      - run: echo ${{ github.ref_name }}
+      - name: Google Cloud Authentication
+        uses: google-github-actions/auth@v3
+        with:
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v3
+      - name: Download
+        run: gcloud storage rsync gs://symbols.bluehill.dev _working --recursive
+      - run: mv 000Admin _working
       - name: Download artifact
         uses: actions/download-artifact@v8
         with:
-          name: ${{ inputs.artifact_name }}
+          artifact-ids: ${{ inputs.artifact_id }}
           path: _artifact
+      - run: "& \"C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x64\\symstore.exe\" add /r /o /compress /f _artifact\\*.pdb /s _working /t ${{ inputs.product_name }} /v ${{ inputs.version }}"
+      - run: mv _working\000Admin .
+      - name: Upload
+        run: gcloud storage rsync _working gs://symbols.bluehill.dev --recursive --no-ignore-symlinks
       - run: |
-          ls -R _artifact
-          Remove-Item -Recurse -Force _artifact
-          echo ngrn > test.txt
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
-          git commit -m "chore: Test [skip ci]"
+          git add 000Admin
+          git commit -m "chore: Update Logs [skip ci]"
           git push
-      #- run: "& \"C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x64\\symstore.exe\""

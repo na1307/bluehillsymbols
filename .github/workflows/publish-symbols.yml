@@ -7,18 +7,18 @@ on:
         required: true
         type: number
       product_name:
-        required: true
+        required: false
         type: string
+        default: ${{ github.event.repository.name }}
       version:
-        required: true
+        required: false
         type: string
+        default: ${{ github.ref_name }}
 
 jobs:
   publish:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v7
-      - run: |
-          echo ${{ github.event.repository.name }}
-          echo ${{ github.ref_name }}
-      - run: C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\symstore.exe
+      - run: echo ${{ github.ref_name }}
+      - run: "C:\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x64\\symstore.exe"
